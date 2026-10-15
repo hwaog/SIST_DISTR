@@ -1,0 +1,56 @@
+{
+ "env": {
+  "fecha": "2026-10-15 00:55:30",
+  "endpoints": [
+   "https://ec2-98-92-33-233.compute-1.amazonaws.com:8441",
+   "https://ec2-3-89-191-250.compute-1.amazonaws.com:8442",
+   "https://ec2-3-234-249-169.compute-1.amazonaws.com:8443"
+  ],
+  "datanodes": 4,
+  "host": "ip-172-31-71-111.ec2.internal"
+ },
+ "result": {
+  "threads=1": {
+   "stat_linearizable": {
+    "ops_per_s": 518.46880095146,
+    "p50_ms": 1.8465240000296035,
+    "p99_ms": 3.2790150000892027,
+    "ops": 2593
+   },
+   "mkdir_raft_write": {
+    "ops_per_s": 78.38504603013544,
+    "p50_ms": 12.444637000044168,
+    "p99_ms": 19.45329499994841,
+    "ops": 392
+   }
+  },
+  "threads=8": {
+   "stat_linearizable": {
+    "ops_per_s": 899.9443415288464,
+    "p50_ms": 8.522637999931248,
+    "p99_ms": 13.787603000082527,
+    "ops": 4505
+   },
+   "mkdir_raft_write": {
+    "ops_per_s": 210.96545244153472,
+    "p50_ms": 37.999123999952644,
+    "p99_ms": 54.41914099992573,
+    "ops": 1059
+   }
+  },
+  "threads=32": {
+   "stat_linearizable": {
+    "ops_per_s": 525.6483354421425,
+    "p50_ms": 38.463276999891605,
+    "p99_ms": 298.1339090001711,
+    "ops": 2661
+   },
+   "mkdir_raft_write": {
+    "ops_per_s": 327.52450178540147,
+    "p50_ms": 91.22113899979922,
+    "p99_ms": 172.0246169998063,
+    "ops": 1655
+   }
+  }
+ }
+}

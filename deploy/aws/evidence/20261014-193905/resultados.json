@@ -1,0 +1,433 @@
+{
+ "fecha": "2026-10-14 19:41:04",
+ "endpoints": [
+  "https://ec2-98-92-33-233.compute-1.amazonaws.com:8441",
+  "https://ec2-3-89-191-250.compute-1.amazonaws.com:8442",
+  "https://ec2-3-234-249-169.compute-1.amazonaws.com:8443"
+ ],
+ "size_mib": 64,
+ "topologia": [
+  {
+   "role": "client",
+   "name": "cl1",
+   "private_ip": "172.31.71.111",
+   "public_host": "ec2-98-92-16-167.compute-1.amazonaws.com",
+   "az": "us-east-1f",
+   "api_port": 0,
+   "internal_port": 0
+  },
+  {
+   "role": "control",
+   "name": "c1",
+   "private_ip": "172.31.78.178",
+   "public_host": "ec2-98-92-33-233.compute-1.amazonaws.com",
+   "az": "us-east-1f",
+   "api_port": 8441,
+   "internal_port": 9441
+  },
+  {
+   "role": "control",
+   "name": "c2",
+   "private_ip": "172.31.42.132",
+   "public_host": "ec2-3-89-191-250.compute-1.amazonaws.com",
+   "az": "us-east-1d",
+   "api_port": 8442,
+   "internal_port": 9442
+  },
+  {
+   "role": "control",
+   "name": "c3",
+   "private_ip": "172.31.15.202",
+   "public_host": "ec2-3-234-249-169.compute-1.amazonaws.com",
+   "az": "us-east-1a",
+   "api_port": 8443,
+   "internal_port": 9443
+  },
+  {
+   "role": "data",
+   "name": "dn1",
+   "private_ip": "172.31.75.39",
+   "public_host": "ec2-44-223-43-56.compute-1.amazonaws.com",
+   "az": "us-east-1f",
+   "api_port": 7441,
+   "internal_port": 7541
+  },
+  {
+   "role": "data",
+   "name": "dn2",
+   "private_ip": "172.31.44.166",
+   "public_host": "ec2-98-81-1-135.compute-1.amazonaws.com",
+   "az": "us-east-1d",
+   "api_port": 7442,
+   "internal_port": 7542
+  },
+  {
+   "role": "data",
+   "name": "dn3",
+   "private_ip": "172.31.15.72",
+   "public_host": "ec2-98-92-235-71.compute-1.amazonaws.com",
+   "az": "us-east-1a",
+   "api_port": 7443,
+   "internal_port": 7543
+  },
+  {
+   "role": "data",
+   "name": "dn4",
+   "private_ip": "172.31.82.251",
+   "public_host": "ec2-34-226-248-193.compute-1.amazonaws.com",
+   "az": "us-east-1b",
+   "api_port": 7444,
+   "internal_port": 7544
+  }
+ ],
+ "ok": true,
+ "pasos": [
+  {
+   "name": "1. Conectividad y líder único",
+   "status": "PASS",
+   "detail": "3 ControlNodes responden por HTTPS verificado contra la CA; líder = c2 (término 1)",
+   "seconds": 0.93,
+   "data": {
+    "leader": "c2",
+    "nodes": {
+     "c1": "follower",
+     "c2": "leader",
+     "c3": "follower"
+    }
+   }
+  },
+  {
+   "name": "2. Login y topología",
+   "status": "PASS",
+   "detail": "4 DataNodes vivos en 4 zonas ['us-east-1a', 'us-east-1b', 'us-east-1d', 'us-east-1f']",
+   "seconds": 0.19,
+   "data": {
+    "datanodes": [
+     {
+      "id": "dn1",
+      "zone": "us-east-1f"
+     },
+     {
+      "id": "dn2",
+      "zone": "us-east-1d"
+     },
+     {
+      "id": "dn3",
+      "zone": "us-east-1a"
+     },
+     {
+      "id": "dn4",
+      "zone": "us-east-1b"
+     }
+    ]
+   }
+  },
+  {
+   "name": "3. Controles de seguridad de red",
+   "status": "PASS",
+   "detail": "http_plano: rechazado; tls_sin_ca: rechazado (CERTIFICATE_VERIFY_FAILED); api_sin_token: HTTP 503; bloque_sin_token: HTTP 401; puerto_interno: no alcanzable desde Internet (security group correcto)",
+   "seconds": 5.31,
+   "data": {
+    "http_plano": "rechazado",
+    "tls_sin_ca": "rechazado (CERTIFICATE_VERIFY_FAILED)",
+    "api_sin_token": "HTTP 503",
+    "bloque_sin_token": "HTTP 401",
+    "puerto_interno": "no alcanzable desde Internet (security group correcto)"
+   }
+  },
+  {
+   "name": "4. put/get con verificación SHA-256",
+   "status": "PASS",
+   "detail": "64 MiB en 17 bloques; subida 8 MiB/s, bajada 2 MiB/s; SHA-256 idéntico",
+   "seconds": 33.99,
+   "data": {
+    "size_mib": 64.00000095367432,
+    "blocks": 17,
+    "upload_MiBps": 7.8,
+    "download_MiBps": 2.5,
+    "sha256": "413ea6c141f9191d323dc4696491d0b87872e44a862012d04dbabe69cee2ac98"
+   }
+  },
+  {
+   "name": "5. Mapa de bloques (réplicas y zonas)",
+   "status": "PASS",
+   "detail": "17 bloques × 3 réplicas, repartidos en 4 DataNodes ['dn1', 'dn2', 'dn3', 'dn4']",
+   "seconds": 0.45,
+   "data": {
+    "blocks": [
+     {
+      "block": "032cfd234d",
+      "replicas": [
+       {
+        "dn": "dn1",
+        "zone": "us-east-1f"
+       },
+       {
+        "dn": "dn4",
+        "zone": "us-east-1b"
+       },
+       {
+        "dn": "dn3",
+        "zone": "us-east-1a"
+       }
+      ]
+     },
+     {
+      "block": "1b7ce5bdf4",
+      "replicas": [
+       {
+        "dn": "dn1",
+        "zone": "us-east-1f"
+       },
+       {
+        "dn": "dn2",
+        "zone": "us-east-1d"
+       },
+       {
+        "dn": "dn3",
+        "zone": "us-east-1a"
+       }
+      ]
+     },
+     {
+      "block": "c05e770a02",
+      "replicas": [
+       {
+        "dn": "dn2",
+        "zone": "us-east-1d"
+       },
+       {
+        "dn": "dn1",
+        "zone": "us-east-1f"
+       },
+       {
+        "dn": "dn3",
+        "zone": "us-east-1a"
+       }
+      ]
+     },
+     {
+      "block": "d413864b60",
+      "replicas": [
+       {
+        "dn": "dn4",
+        "zone": "us-east-1b"
+       },
+       {
+        "dn": "dn3",
+        "zone": "us-east-1a"
+       },
+       {
+        "dn": "dn2",
+        "zone": "us-east-1d"
+       }
+      ]
+     },
+     {
+      "block": "becce23e2d",
+      "replicas": [
+       {
+        "dn": "dn2",
+        "zone": "us-east-1d"
+       },
+       {
+        "dn": "dn4",
+        "zone": "us-east-1b"
+       },
+       {
+        "dn": "dn1",
+        "zone": "us-east-1f"
+       }
+      ]
+     },
+     {
+      "block": "7079303e9c",
+      "replicas": [
+       {
+        "dn": "dn4",
+        "zone": "us-east-1b"
+       },
+       {
+        "dn": "dn3",
+        "zone": "us-east-1a"
+       },
+       {
+        "dn": "dn2",
+        "zone": "us-east-1d"
+       }
+      ]
+     },
+     {
+      "block": "7a627acd74",
+      "replicas": [
+       {
+        "dn": "dn1",
+        "zone": "us-east-1f"
+       },
+       {
+        "dn": "dn4",
+        "zone": "us-east-1b"
+       },
+       {
+        "dn": "dn3",
+        "zone": "us-east-1a"
+       }
+      ]
+     },
+     {
+      "block": "7777d64f43",
+      "replicas": [
+       {
+        "dn": "dn3",
+        "zone": "us-east-1a"
+       },
+       {
+        "dn": "dn2",
+        "zone": "us-east-1d"
+       },
+       {
+        "dn": "dn4",
+        "zone": "us-east-1b"
+       }
+      ]
+     },
+     {
+      "block": "f7a798fe96",
+      "replicas": [
+       {
+        "dn": "dn2",
+        "zone": "us-east-1d"
+       },
+       {
+        "dn": "dn1",
+        "zone": "us-east-1f"
+       },
+       {
+        "dn": "dn4",
+        "zone": "us-east-1b"
+       }
+      ]
+     },
+     {
+      "block": "15ca53a3cd",
+      "replicas": [
+       {
+        "dn": "dn1",
+        "zone": "us-east-1f"
+       },
+       {
+        "dn": "dn3",
+        "zone": "us-east-1a"
+       },
+       {
+        "dn": "dn4",
+        "zone": "us-east-1b"
+       }
+      ]
+     },
+     {
+      "block": "5a67ebd8e0",
+      "replicas": [
+       {
+        "dn": "dn4",
+        "zone": "us-east-1b"
+       },
+       {
+        "dn": "dn2",
+        "zone": "us-east-1d"
+       },
+       {
+        "dn": "dn3",
+        "zone": "us-east-1a"
+       }
+      ]
+     },
+     {
+      "block": "3e67e05164",
+      "replicas": [
+       {
+        "dn": "dn4",
+        "zone": "us-east-1b"
+       },
+       {
+        "dn": "dn1",
+        "zone": "us-east-1f"
+       },
+       {
+        "dn": "dn2",
+        "zone": "us-east-1d"
+       }
+      ]
+     }
+    ],
+    "datanodes_used": [
+     "dn1",
+     "dn2",
+     "dn3",
+     "dn4"
+    ]
+   }
+  },
+  {
+   "name": "6. Cifrado en reposo en el disco",
+   "status": "PASS",
+   "detail": "dn1: 12 bloques en disco, cabecera DFSB (AES-GCM) y 0 coincidencias del marcador en claro que se subió",
+   "seconds": 1.71,
+   "data": {
+    "datanode": "dn1",
+    "blobs": 12,
+    "magic_ok": true,
+    "plaintext_hits": 0,
+    "ssh_ok": true
+   }
+  },
+  {
+   "name": "7. Failover del líder",
+   "status": "PASS",
+   "detail": "líder c2 detenido → escritura aceptada otra vez en 5.6s por el nuevo líder c1; datos íntegros; c2 se reincorporó como seguidor en 3s",
+   "seconds": 37.44,
+   "data": {
+    "old_leader": "c2",
+    "new_leader": "c1",
+    "failover_s": 5.61,
+    "rejoin_s": 3.1,
+    "write_after_failover": true
+   }
+  },
+  {
+   "name": "8. Caída de un DataNode",
+   "status": "PASS",
+   "detail": "dn1 detenido → lectura inmediata correcta (30.6s); subreplicación detectada a 31s; 3 réplicas vivas por bloque restablecidas a 31s",
+   "seconds": 37.43,
+   "data": {
+    "victim": "dn1",
+    "read_s": 30.56,
+    "detected_s": 31.0,
+    "repaired_s": 31.2,
+    "target_replicas": 3
+   }
+  },
+  {
+   "name": "9. fsck final",
+   "status": "PASS",
+   "detail": "18 bloques, todos sanos",
+   "seconds": 0.08,
+   "data": {
+    "blocks": 18,
+    "under_replicated": 0,
+    "over_replicated": 0,
+    "lost": 0,
+    "healthy": 18,
+    "under_sample": [],
+    "lost_sample": []
+   }
+  },
+  {
+   "name": "10. Limpieza",
+   "status": "PASS",
+   "detail": "archivos de prueba eliminados",
+   "seconds": 0.44,
+   "data": {}
+  }
+ ]
+}
