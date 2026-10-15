@@ -1,0 +1,278 @@
+# DFSha — cluster de referencia: 3 ControlNodes (Raft) + 5 DataNodes en 2 zonas + contenedor cliente.
+# GENERADO por docker/gen_compose.py — no editar a mano (edite el generador y regenere).
+#
+# Uso:  cp .env.example .env   # y cambie ADMIN_PASSWORD
+#       docker compose build && docker compose up -d
+#       docker compose --profile client run --rm client dfsha login
+#
+# Aislamiento de claves: cada nodo monta SÓLO su volumen pki-<nodo> (ca.pem + su .crt + su .key);
+# cluster.key sólo existe en sec-<controlnode>; ca.key sólo en el volumen 'state' de pki-init.
+name: dfsha
+
+x-node: &node
+  image: dfsha:latest
+  restart: unless-stopped
+  pull_policy: never
+  networks: [dfsha-net]
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+
+services:
+  pki-init:
+    build: {context: ., dockerfile: docker/Dockerfile}
+    image: dfsha:latest
+    user: root
+    entrypoint: ["/bin/sh", "/app/init-pki.sh"]
+    environment:
+      CONTROLS: "c1 c2 c3"
+      DATAS: "dn1 dn2 dn3 dn4 dn5"
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?defina ADMIN_PASSWORD en .env}
+    volumes:
+      - state:/state                       # PRIVADO: ca.key, claves emitidas y cluster.key (nadie más lo monta)
+      - pki-c1:/out/pki/c1
+      - pki-c2:/out/pki/c2
+      - pki-c3:/out/pki/c3
+      - pki-dn1:/out/pki/dn1
+      - pki-dn2:/out/pki/dn2
+      - pki-dn3:/out/pki/dn3
+      - pki-dn4:/out/pki/dn4
+      - pki-dn5:/out/pki/dn5
+      - pki-client:/out/pki/client          # sólo ca.pem
+      - sec-c1:/out/sec/c1
+      - sec-c2:/out/sec/c2
+      - sec-c3:/out/sec/c3
+      - ./docker/init-pki.sh:/app/init-pki.sh:ro
+    networks: [dfsha-net]
+    restart: "no"
+
+  c1:
+    <<: *node
+    container_name: dfsha-c1
+    command: ["dfsha-control"]
+    environment:
+      DFSHA_NODE_ID: c1
+      DFSHA_PEERS: "c1=https://c1:8441,https://c1:9441;c2=https://c2:8442,https://c2:9442;c3=https://c3:8443,https://c3:9443"
+      DFSHA_DATA_DIR: /data
+      DFSHA_CERT: /pki/c1.crt
+      DFSHA_KEY: /pki/c1.key
+      DFSHA_CA: /pki/ca.pem
+      DFSHA_CLUSTER_SECRET_FILE: /secrets/cluster.key
+      DFSHA_ADMIN_PASSWORD_FILE: /secrets/admin.pass
+      DFSHA_REPL: ${DFSHA_REPL:-3}
+      DFSHA_BLOCK_SIZE: ${DFSHA_BLOCK_SIZE:-4MiB}
+    ports: ["8441:8441"]   # API pública; el puerto interno (9441, mTLS) NO se publica
+    volumes:
+      - pki-c1:/pki:ro
+      - sec-c1:/secrets:ro
+      - c1-data:/data
+    healthcheck: {test: ["CMD", "dfsha-healthcheck", "8441"], interval: 5s, timeout: 4s, retries: 12, start_period: 5s}
+    depends_on: {pki-init: {condition: service_completed_successfully}}
+
+  c2:
+    <<: *node
+    container_name: dfsha-c2
+    command: ["dfsha-control"]
+    environment:
+      DFSHA_NODE_ID: c2
+      DFSHA_PEERS: "c1=https://c1:8441,https://c1:9441;c2=https://c2:8442,https://c2:9442;c3=https://c3:8443,https://c3:9443"
+      DFSHA_DATA_DIR: /data
+      DFSHA_CERT: /pki/c2.crt
+      DFSHA_KEY: /pki/c2.key
+      DFSHA_CA: /pki/ca.pem
+      DFSHA_CLUSTER_SECRET_FILE: /secrets/cluster.key
+      DFSHA_ADMIN_PASSWORD_FILE: /secrets/admin.pass
+      DFSHA_REPL: ${DFSHA_REPL:-3}
+      DFSHA_BLOCK_SIZE: ${DFSHA_BLOCK_SIZE:-4MiB}
+    ports: ["8442:8442"]   # API pública; el puerto interno (9442, mTLS) NO se publica
+    volumes:
+      - pki-c2:/pki:ro
+      - sec-c2:/secrets:ro
+      - c2-data:/data
+    healthcheck: {test: ["CMD", "dfsha-healthcheck", "8442"], interval: 5s, timeout: 4s, retries: 12, start_period: 5s}
+    depends_on: {pki-init: {condition: service_completed_successfully}}
+
+  c3:
+    <<: *node
+    container_name: dfsha-c3
+    command: ["dfsha-control"]
+    environment:
+      DFSHA_NODE_ID: c3
+      DFSHA_PEERS: "c1=https://c1:8441,https://c1:9441;c2=https://c2:8442,https://c2:9442;c3=https://c3:8443,https://c3:9443"
+      DFSHA_DATA_DIR: /data
+      DFSHA_CERT: /pki/c3.crt
+      DFSHA_KEY: /pki/c3.key
+      DFSHA_CA: /pki/ca.pem
+      DFSHA_CLUSTER_SECRET_FILE: /secrets/cluster.key
+      DFSHA_ADMIN_PASSWORD_FILE: /secrets/admin.pass
+      DFSHA_REPL: ${DFSHA_REPL:-3}
+      DFSHA_BLOCK_SIZE: ${DFSHA_BLOCK_SIZE:-4MiB}
+    ports: ["8443:8443"]   # API pública; el puerto interno (9443, mTLS) NO se publica
+    volumes:
+      - pki-c3:/pki:ro
+      - sec-c3:/secrets:ro
+      - c3-data:/data
+    healthcheck: {test: ["CMD", "dfsha-healthcheck", "8443"], interval: 5s, timeout: 4s, retries: 12, start_period: 5s}
+    depends_on: {pki-init: {condition: service_completed_successfully}}
+
+  dn1:
+    <<: *node
+    container_name: dfsha-dn1
+    command: ["dfsha-data"]
+    environment:
+      DFSHA_NODE_ID: dn1
+      DFSHA_CONTROLS: "https://c1:9441,https://c2:9442,https://c3:9443"
+      DFSHA_DATA_DIR: /data
+      DFSHA_CERT: /pki/dn1.crt
+      DFSHA_KEY: /pki/dn1.key
+      DFSHA_CA: /pki/ca.pem
+      DFSHA_ZONE: zone-a
+      DFSHA_API_PORT: 7441
+      DFSHA_INTERNAL_PORT: 7541
+      DFSHA_ADVERTISE_PUBLIC: https://dn1:7441
+      DFSHA_ADVERTISE_INTERNAL: https://dn1:7541
+      DFSHA_CAPACITY: ${DFSHA_DN_CAPACITY:-20GiB}
+    ports: ["7441:7441"]
+    volumes:                             # un DataNode NO recibe cluster.key ni la clave de la CA
+      - pki-dn1:/pki:ro
+      - dn1-data:/data
+    healthcheck: {test: ["CMD", "dfsha-healthcheck", "7441"], interval: 5s, timeout: 4s, retries: 12, start_period: 5s}
+    depends_on: {pki-init: {condition: service_completed_successfully}}
+
+  dn2:
+    <<: *node
+    container_name: dfsha-dn2
+    command: ["dfsha-data"]
+    environment:
+      DFSHA_NODE_ID: dn2
+      DFSHA_CONTROLS: "https://c1:9441,https://c2:9442,https://c3:9443"
+      DFSHA_DATA_DIR: /data
+      DFSHA_CERT: /pki/dn2.crt
+      DFSHA_KEY: /pki/dn2.key
+      DFSHA_CA: /pki/ca.pem
+      DFSHA_ZONE: zone-b
+      DFSHA_API_PORT: 7442
+      DFSHA_INTERNAL_PORT: 7542
+      DFSHA_ADVERTISE_PUBLIC: https://dn2:7442
+      DFSHA_ADVERTISE_INTERNAL: https://dn2:7542
+      DFSHA_CAPACITY: ${DFSHA_DN_CAPACITY:-20GiB}
+    ports: ["7442:7442"]
+    volumes:                             # un DataNode NO recibe cluster.key ni la clave de la CA
+      - pki-dn2:/pki:ro
+      - dn2-data:/data
+    healthcheck: {test: ["CMD", "dfsha-healthcheck", "7442"], interval: 5s, timeout: 4s, retries: 12, start_period: 5s}
+    depends_on: {pki-init: {condition: service_completed_successfully}}
+
+  dn3:
+    <<: *node
+    container_name: dfsha-dn3
+    command: ["dfsha-data"]
+    environment:
+      DFSHA_NODE_ID: dn3
+      DFSHA_CONTROLS: "https://c1:9441,https://c2:9442,https://c3:9443"
+      DFSHA_DATA_DIR: /data
+      DFSHA_CERT: /pki/dn3.crt
+      DFSHA_KEY: /pki/dn3.key
+      DFSHA_CA: /pki/ca.pem
+      DFSHA_ZONE: zone-a
+      DFSHA_API_PORT: 7443
+      DFSHA_INTERNAL_PORT: 7543
+      DFSHA_ADVERTISE_PUBLIC: https://dn3:7443
+      DFSHA_ADVERTISE_INTERNAL: https://dn3:7543
+      DFSHA_CAPACITY: ${DFSHA_DN_CAPACITY:-20GiB}
+    ports: ["7443:7443"]
+    volumes:                             # un DataNode NO recibe cluster.key ni la clave de la CA
+      - pki-dn3:/pki:ro
+      - dn3-data:/data
+    healthcheck: {test: ["CMD", "dfsha-healthcheck", "7443"], interval: 5s, timeout: 4s, retries: 12, start_period: 5s}
+    depends_on: {pki-init: {condition: service_completed_successfully}}
+
+  dn4:
+    <<: *node
+    container_name: dfsha-dn4
+    command: ["dfsha-data"]
+    environment:
+      DFSHA_NODE_ID: dn4
+      DFSHA_CONTROLS: "https://c1:9441,https://c2:9442,https://c3:9443"
+      DFSHA_DATA_DIR: /data
+      DFSHA_CERT: /pki/dn4.crt
+      DFSHA_KEY: /pki/dn4.key
+      DFSHA_CA: /pki/ca.pem
+      DFSHA_ZONE: zone-b
+      DFSHA_API_PORT: 7444
+      DFSHA_INTERNAL_PORT: 7544
+      DFSHA_ADVERTISE_PUBLIC: https://dn4:7444
+      DFSHA_ADVERTISE_INTERNAL: https://dn4:7544
+      DFSHA_CAPACITY: ${DFSHA_DN_CAPACITY:-20GiB}
+    ports: ["7444:7444"]
+    volumes:                             # un DataNode NO recibe cluster.key ni la clave de la CA
+      - pki-dn4:/pki:ro
+      - dn4-data:/data
+    healthcheck: {test: ["CMD", "dfsha-healthcheck", "7444"], interval: 5s, timeout: 4s, retries: 12, start_period: 5s}
+    depends_on: {pki-init: {condition: service_completed_successfully}}
+
+  dn5:
+    <<: *node
+    container_name: dfsha-dn5
+    command: ["dfsha-data"]
+    environment:
+      DFSHA_NODE_ID: dn5
+      DFSHA_CONTROLS: "https://c1:9441,https://c2:9442,https://c3:9443"
+      DFSHA_DATA_DIR: /data
+      DFSHA_CERT: /pki/dn5.crt
+      DFSHA_KEY: /pki/dn5.key
+      DFSHA_CA: /pki/ca.pem
+      DFSHA_ZONE: zone-a
+      DFSHA_API_PORT: 7445
+      DFSHA_INTERNAL_PORT: 7545
+      DFSHA_ADVERTISE_PUBLIC: https://dn5:7445
+      DFSHA_ADVERTISE_INTERNAL: https://dn5:7545
+      DFSHA_CAPACITY: ${DFSHA_DN_CAPACITY:-20GiB}
+    ports: ["7445:7445"]
+    volumes:                             # un DataNode NO recibe cluster.key ni la clave de la CA
+      - pki-dn5:/pki:ro
+      - dn5-data:/data
+    healthcheck: {test: ["CMD", "dfsha-healthcheck", "7445"], interval: 5s, timeout: 4s, retries: 12, start_period: 5s}
+    depends_on: {pki-init: {condition: service_completed_successfully}}
+
+  client:
+    <<: *node
+    container_name: dfsha-client
+    profiles: [client]
+    command: ["sleep", "infinity"]
+    environment:
+      DFSHA_ENDPOINTS: "https://c1:8441,https://c2:8442,https://c3:8443"
+      DFSHA_CA: /pki/ca.pem
+      DFSHA_USER: admin
+      DFSHA_PASSWORD: ${ADMIN_PASSWORD}
+      DFSHA_HOME: /home/dfsha/.dfsha
+    volumes:
+      - pki-client:/pki:ro                 # sólo la CA pública
+      - ./work:/work
+    working_dir: /work
+    depends_on: {pki-init: {condition: service_completed_successfully}}
+
+networks:
+  dfsha-net: {}
+
+volumes:
+  state: {}
+  pki-c1: {}
+  sec-c1: {}
+  c1-data: {}
+  pki-c2: {}
+  sec-c2: {}
+  c2-data: {}
+  pki-c3: {}
+  sec-c3: {}
+  c3-data: {}
+  pki-dn1: {}
+  dn1-data: {}
+  pki-dn2: {}
+  dn2-data: {}
+  pki-dn3: {}
+  dn3-data: {}
+  pki-dn4: {}
+  dn4-data: {}
+  pki-dn5: {}
+  dn5-data: {}
+  pki-client: {}
