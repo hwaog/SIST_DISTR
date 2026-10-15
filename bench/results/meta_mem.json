@@ -1,0 +1,15 @@
+{
+ "env": {
+  "python": "3.12.13",
+  "machine": "arm64",
+  "system": "macOS-26.6.2-arm64-arm-64bit",
+  "cpus": 10
+ },
+ "result": {
+  "bytes_per_file_1block": 1299.5723333333333,
+  "bytes_per_block": 471.05143333333336,
+  "bytes_per_file_base": 828.5209,
+  "fsm_cmds_per_s": 27763.728124734673
+ },
+ "elapsed_s": 2.0448169708251953
+}

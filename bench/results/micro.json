@@ -1,0 +1,15 @@
+{
+ "env": {
+  "python": "3.12.13",
+  "machine": "arm64",
+  "system": "macOS-26.6.2-arm64-arm-64bit",
+  "cpus": 10
+ },
+ "result": {
+  "aes256gcm_encrypt_MiBps": 2136.3051562207856,
+  "aes256gcm_decrypt_MiBps": 2216.632416123423,
+  "sha256_MiBps": 3199.6586865683626,
+  "block_MiB": 4
+ },
+ "elapsed_s": 0.26004695892333984
+}
