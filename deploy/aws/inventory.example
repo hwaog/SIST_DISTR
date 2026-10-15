@@ -1,0 +1,9 @@
+# rol     nombre  ip_privada  dns_publico                                  zona
+control   c1      10.0.1.11   ec2-3-80-1-1.compute-1.amazonaws.com         us-east-1a
+control   c2      10.0.2.12   ec2-3-80-1-2.compute-1.amazonaws.com         us-east-1b
+control   c3      10.0.3.13   ec2-3-80-1-3.compute-1.amazonaws.com         us-east-1c
+data      dn1     10.0.1.21   ec2-3-80-2-1.compute-1.amazonaws.com         us-east-1a
+data      dn2     10.0.2.22   ec2-3-80-2-2.compute-1.amazonaws.com         us-east-1b
+data      dn3     10.0.3.23   ec2-3-80-2-3.compute-1.amazonaws.com         us-east-1c
+data      dn4     10.0.1.24   ec2-3-80-2-4.compute-1.amazonaws.com         us-east-1a
+client    cl1     10.0.1.99   ec2-3-80-3-1.compute-1.amazonaws.com         us-east-1a
