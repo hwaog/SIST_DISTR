@@ -1,0 +1,14 @@
+.git
+.venv
+.cluster
+.demo
+.pytest_cache
+.ruff_cache
+**/__pycache__
+bench/results
+report
+tests
+deploy/aws/bundles
+deploy/aws/client
+work
+*.docx

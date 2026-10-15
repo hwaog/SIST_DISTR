@@ -1,0 +1,66 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dfsha"
+version = "1.0.0"
+description = "DFSha: sistema de archivos distribuido por bloques (ControlNodes replicados con Raft + DataNodes), cifrado, con alta disponibilidad."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn>=0.30",
+    "httpx>=0.27",
+    "cryptography>=43",
+    "pyjwt>=2.9",
+    "pydantic>=2.8",
+    "click>=8.1",
+    "rich>=13.7",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "pytest-asyncio>=0.24",
+    "pytest-timeout>=2.3",
+    "ruff>=0.6",
+    "pyyaml>=6",
+]
+report = [
+    "matplotlib>=3.9",
+    "python-docx>=1.1",
+    "psutil>=6",
+]
+
+[project.scripts]
+dfsha = "dfsha.client.cli:main"
+dfsha-control = "dfsha.control.main:main"
+dfsha-data = "dfsha.data.main:main"
+dfsha-pki = "dfsha.pki:main"
+dfsha-cluster = "dfsha.cluster:main"
+dfsha-cloud = "dfsha.cloud:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+timeout = 180
+markers = [
+    "integration: levanta un cluster real (procesos + TLS) y es lento",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["E501", "B008"]
+
+[tool.ruff.lint.per-file-ignores]
+"bench/*" = ["B023"]
